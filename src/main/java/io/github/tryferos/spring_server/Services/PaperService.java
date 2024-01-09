@@ -42,7 +42,7 @@ public class PaperService {
 
     public Paper[] searchPapers(String title, String vAbstract, long[] authors){
         Paper[] papers = repo.getPapersByTitleIgnoreCaseOrVAbstractIgnoreCaseOrderByTitle(title, vAbstract);
-
+        return papers;
 
     }
 

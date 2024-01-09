@@ -106,11 +106,8 @@ public class PaperController {
             @RequestParam(required = true) String vAbstract,
             @RequestParam(required = true) long[] authors
     ){
-        try{
-            return new ResponseEntity(service.searchPaper(query), HttpStatus.OK);
-        }catch(PaperException e){
-            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity(service.searchPapers(title, vAbstract, authors), HttpStatus.OK);
+
     }
 
     @PostMapping(path = "/review")
