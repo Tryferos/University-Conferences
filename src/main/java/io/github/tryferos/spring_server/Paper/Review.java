@@ -21,10 +21,13 @@ public class Review {
 
     @Id
     private long id;
-    @Column
+    @Column(nullable = true)
     private String comment;
-    @Column
+    @Column(nullable = true)
     private int score;
+    @Column(nullable = true)
+    private String author_comment;
+
     @OneToOne
     @JoinColumn(name="reviewer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -35,5 +38,9 @@ public class Review {
     @JoinColumn(name="paper_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Paper paper;
+
+    public boolean isCreated(){
+        return this.paper!=null && this.reviewer!=null;
+    }
 
 }

@@ -2,6 +2,8 @@ package io.github.tryferos.spring_server.Paper;
 
 import io.github.tryferos.spring_server.Conference.Conference;
 import io.github.tryferos.spring_server.Conference.ConferenceState;
+import io.github.tryferos.spring_server.ErrorMessages;
+import io.github.tryferos.spring_server.Services.PaperService;
 import io.github.tryferos.spring_server.User.User;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
@@ -12,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -62,14 +65,41 @@ public class Paper{
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Conference conference;
 
-
-
-
-    //Initialization
-
-
-    public boolean proceed() {
-        return false;
+    public PaperState forwardState(PaperForwardStateRecord data) throws PaperException,PaperStateException{
+        PaperState newState = this.getState();
+        switch (state){
+            case CREATED -> {
+                if(!conference.getState().equals(ConferenceState.SUBMISSION))
+                    throw new PaperStateException(ErrorMessages.PaperWrongStateConference, conference.getId(), ConferenceState.SUBMISSION);
+                if(this.content==null || this.content.isEmpty())
+                    throw new PaperStateException(ErrorMessages.NoNullConstraint, "content");
+                newState = PaperState.SUBMITTED;
+            }
+            case SUBMITTED ->{
+                if(!conference.getState().equals(ConferenceState.ASSIGNMENT))
+                    throw new PaperStateException(ErrorMessages.PaperWrongStateConference, conference.getId(), ConferenceState.ASSIGNMENT);
+                newState = PaperState.REVIEWED; //Assignment of reviewers to papers starts.
+            }
+            //ConfeState: created -> submission -> assignment
+            //                                  -> review (papers reviewed)
+            //                                             -> decision (papers approved)                      -> final (papers accepted)
+            //PaperState: created -> submitted -> reviewed -> rejected (conference decision)
+            //                                             -> approved  (conference decision) -> submit final paper (final_submission)
+            //                                                                                                -> accepted
+            case APPROVED ->{
+                if(!conference.getState().equals(ConferenceState.FINAL))
+                    throw new PaperStateException(ErrorMessages.PaperWrongStateConference, conference.getId(), ConferenceState.FINAL);
+                newState = PaperState.ACCEPTED; //Assignment of reviewers to papers starts.
+            }
+            case REJECTED -> {
+                throw new PaperException("Paper with id %s was rejected by the conference.", this.getId());
+            }
+            case ACCEPTED -> {
+                throw new PaperException("Paper with id %s is already accepted by the conference.", this.getId());
+            }
+        }
+        this.setState(newState);
+        return newState;
     }
 
 }

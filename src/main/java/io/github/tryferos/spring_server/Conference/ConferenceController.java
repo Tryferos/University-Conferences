@@ -89,7 +89,7 @@ public class ConferenceController {
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
-    @GetMapping(path = "/get")
+    @GetMapping(path = "/search")
     public ResponseEntity<List<ConferenceData>> getConferences(
             @RequestParam String name,
             @RequestParam(required = false) String description
